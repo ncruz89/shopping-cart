@@ -3,6 +3,10 @@ const Item = require("../models/item");
 const router = new express.Router();
 const stripe = require("stripe")(process.env.STRIPE_SECRET_KEY);
 
+/**
+ * Checks inventory of item added to cart before adding item to cart client side.
+ * returns either error or server-side id to be added as an dataset to the cart item for purchasing security
+ */
 router.get("/store", async (req, res) => {
   const _name = req.query.name;
   try {
@@ -16,6 +20,13 @@ router.get("/store", async (req, res) => {
   }
 });
 
+/**
+ * router on purchase button click.
+ * receives an object of cart items along with Token ID for stripe
+ * checks inventory and if in inventory calculates if item amount in inventory is greater than purchase amount
+ * if so runs stripe charge and updates inventory amount.
+ * if not returns detailed alert to update quantity amount in cart. Payment not accepted. Inventory not updated
+ */
 router.patch("/store", async (req, res) => {
   const _items = req.body.items;
 

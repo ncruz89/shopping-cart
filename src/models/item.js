@@ -17,6 +17,7 @@ const Item = mongoose.model("Item", {
   },
 });
 
+// simple database setup for testing. is reset on program start by deleting any items in db and adding a fresh inventory
 const setupDatabase = async () => {
   await Item.deleteMany();
 
@@ -60,55 +61,5 @@ const setupDatabase = async () => {
 };
 
 setupDatabase();
-
-// const item = new Item({
-//   name: "T-shirt (black)",
-//   quantity: 10,
-// });
-
-// item
-//   .save()
-//   .then(() => {
-//     console.log(item);
-//   })
-//   .catch((error) => {
-//     console.log("ERROR", error);
-//   });
-
-// const items = new Item.insertMany([
-//   {
-//     item: "T-Shirt (black)",
-//     quantity: 10,
-//   },
-//   {
-//     item: "T-Shirt (red)",
-//     quantity: 5,
-//   },
-//   {
-//     item: "T-Shirt (blue)",
-//     quantity: 5,
-//   },
-//   {
-//     item: "Coffee Cup (red)",
-//     quantity: 2,
-//   },
-//   {
-//     item: "Coffee Cup (black)",
-//     quantity: 10,
-//   },
-//   {
-//     item: "Coffee Cup (blue)",
-//     quantity: 5,
-//   },
-// ]);
-
-// items
-//   .save()
-//   .then(() => {
-//     console.log(items);
-//   })
-//   .catch((error) => {
-//     console.log("ERROR", error);
-//   });
 
 module.exports = Item;

@@ -1,3 +1,4 @@
+// element caching
 let removeCartItemBtns = document.querySelectorAll(".btn-danger");
 let quantityInputs = document.querySelectorAll(".cart-quantity-input");
 const cartItemsContainer = document.querySelector(".cart-items");
@@ -7,7 +8,21 @@ const purchaseBtn = document.querySelector(".btn-purchase");
 const stripeHandler = StripeCheckout.configure({
   key: "pk_test_51LVxL9Ku1iytqIwFZ8mPNF3ueGvVFLWIc2sg0l1WTxzirBYA47lCurJLWvJ5qWZq3yl1fvK721C66xTMWzHyd0S500xmHLWdNd",
   locale: "en",
-  token: async function (token) {
+});
+
+/**
+ * Adds event listener to purchase button
+ * Grabs price from client side to make sure price wasn't changed via dev tools
+ * grabs cart items and quantities. creates objects of itemName: quantity pairs
+ * runs stripe and purchase fetch request.
+ * if no inventory errors and payment accepted alerts customer and clears cart.
+ */
+const addPurchaseBtn = function () {
+  purchaseBtn.addEventListener("click", function (e) {
+    var priceElement = document.getElementsByClassName("cart-total-price")[0];
+    const price = parseFloat(priceElement.innerText.replace("$", "")) * 100;
+    if (!price) return alert("Cart is empty.");
+
     const titlesArray = [
       ...cartItemsContainer.querySelectorAll(".cart-item-title"),
     ].map((el) => el.innerText);
@@ -19,41 +34,41 @@ const stripeHandler = StripeCheckout.configure({
     const items = {};
     titlesArray.forEach((key, i) => (items[key] = quantitiesArray[i]));
 
-    const res = await fetch("/store", {
-      method: "PATCH",
-      headers: {
-        "Content-Type": "application/json",
-        Accept: "application/json",
-      },
-      body: JSON.stringify({
-        stripeTokenID: token.id,
-        items: items,
-      }),
-    });
-    console.log(res);
-    const data = await res.text();
-    alert(`${data}`);
-    if (data === "Payment Accepted. Thank you for your purchase.") {
-      cartItemsContainer
-        .querySelectorAll(".cart-row")
-        .forEach((el) => el.remove());
-      updateCartTotal();
-    }
-  },
-});
-
-const addPurchaseBtn = function () {
-  purchaseBtn.addEventListener("click", function (e) {
-    var priceElement = document.getElementsByClassName("cart-total-price")[0];
-    const price = parseFloat(priceElement.innerText.replace("$", "")) * 100;
-    if (!price) return alert("Cart is empty.");
-
     stripeHandler.open({
       amount: price,
+      token: async function (token) {
+        const res = await fetch("/store", {
+          method: "PATCH",
+          headers: {
+            "Content-Type": "application/json",
+            Accept: "application/json",
+          },
+          body: JSON.stringify({
+            stripeTokenID: token.id,
+            items: items,
+          }),
+        });
+        console.log(res);
+        const data = await res.text();
+        alert(`${data}`);
+        if (data === "Payment Accepted. Thank you for your purchase.") {
+          cartItemsContainer
+            .querySelectorAll(".cart-row")
+            .forEach((el) => el.remove());
+          updateCartTotal();
+        }
+      },
     });
   });
 };
 
+/**
+ * adds event listeners to merch items that add item to carts
+ * checks if item is in inventory on server
+ * if out of stock, replaces add to cart button text with out of stock and disables button
+ * if in stock retrieves item ID from server side and passes title, price, image and ID as parameters in addItemToCart()
+ * updates cart total
+ */
 const addAddToCartBtns = function () {
   addToCartBtns.forEach((btn) =>
     btn.addEventListener("click", async function (e) {
@@ -76,6 +91,8 @@ const addAddToCartBtns = function () {
     })
   );
 };
+
+// adds remove button event listener on cart items and updates cart total
 const addRemoveBtn = function () {
   removeCartItemBtns.forEach((btn) =>
     btn.addEventListener("click", function (e) {
@@ -85,6 +102,8 @@ const addRemoveBtn = function () {
     })
   );
 };
+
+// adds event listeners on quantity change buttons and updates cart total
 const quantityChange = function () {
   quantityInputs.forEach((input) =>
     input.addEventListener("change", async function (e) {
@@ -95,6 +114,8 @@ const quantityChange = function () {
   );
 };
 
+// Checks if item added to cart is in the server inventory
+// returns either out of stock message or item id in server
 const checkInventory = async function (itemName) {
   try {
     const res = await fetch(`store?name=${itemName}`);
@@ -105,6 +126,13 @@ const checkInventory = async function (itemName) {
   }
 };
 
+/**
+ * Adds items to cart. Checks if items exist and adds event listeners to cart item buttons
+ * @param {string} title title of cart item to be added
+ * @param {string} price price of cart item to be added
+ * @param {url} image image url of cart item
+ * @param {string} id server id of cart item to be added as dataset to cart item
+ */
 const addItemToCart = function (title, price, image, id) {
   const cartItems = document.querySelector(".cart-items");
 
@@ -139,6 +167,8 @@ const addItemToCart = function (title, price, image, id) {
   addRemoveBtn();
 };
 
+// updates cart total
+// retrieves price and quantity in cart to calculate and set total
 const updateCartTotal = function () {
   let total = 0;
   const cartRows = cartItemsContainer.querySelectorAll(".cart-row");
