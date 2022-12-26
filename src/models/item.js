@@ -1,5 +1,6 @@
 const mongoose = require("mongoose");
 
+// mongoose schema for item
 const Item = mongoose.model("Item", {
   name: {
     type: String,

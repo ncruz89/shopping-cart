@@ -3,6 +3,7 @@ const express = require("express");
 require("./db/mongoose");
 const itemRouter = require("./routers/item");
 
+// express setup - boilerplate
 const app = express();
 
 const publicDirectoryPath = path.join(__dirname, "../public");

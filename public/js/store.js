@@ -12,7 +12,7 @@ const stripeHandler = StripeCheckout.configure({
 
 /**
  * Adds event listener to purchase button
- * Grabs price from client side to make sure price wasn't changed via dev tools
+ * Grabs price from client side and compares to server side to make sure price wasn't changed via dev tools
  * grabs cart items and quantities. creates objects of itemName: quantity pairs
  * runs stripe and purchase fetch request.
  * if no inventory errors and payment accepted alerts customer and clears cart.
